@@ -3,6 +3,7 @@ package com.example.user.grafacc;
 import android.content.Context;
 import android.content.Intent;
 import android.hardware.Sensor;
+import android.os.Build;
 import android.os.Parcelable;
 import android.support.annotation.NonNull;
 import android.support.v7.widget.RecyclerView;
@@ -46,9 +47,10 @@ public class SensorAdapter extends RecyclerView.Adapter<SensorAdapter.ViewHolder
             @Override
             public void onClick(View v) {
                 Intent intent=new Intent(mContext, GrafActivity.class);
-                ArrayList list=new ArrayList();
-                list.add(sensor);
-//                intent.putParcelableArrayListExtra("Sensor",list);
+              Integer i=sensor.getType();
+//              String s=sensor.getStringType();
+                    intent.putExtra("sensortype",sensor.getType());
+
                 mContext.startActivity(intent);
             }
         });
