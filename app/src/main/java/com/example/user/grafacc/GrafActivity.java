@@ -28,6 +28,8 @@ public class GrafActivity extends AppCompatActivity implements SensorEventListen
     LineGraphSeries<DataPoint> series;
     LineGraphSeries<DataPoint> seriesX;
     LineGraphSeries<DataPoint> seriesZ;
+    private Thread thread;
+    private boolean plotData = true;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -68,16 +70,113 @@ public class GrafActivity extends AppCompatActivity implements SensorEventListen
         graph.getViewport().setXAxisBoundsManual(true);
         graph.getViewport().setMinX(0);
         graph.getViewport().setMaxX(20);
-        
+        feedMultiple();
+
     }
+    public void addEntry(SensorEvent event) {
+        /*     LineGraphSeries<DataPoint> series = new LineGraphSeries<>();*/
+        float[] values = event.values;
+        // Movement
+        float x = values[0];
+        System.out.println(x);
+        float y = values[1];
+        System.out.println(y);
+        float z = values[2];
+        System.out.println(z);
+
+
+        graph2LastXValue += 1d;
+        graph2LastYValue += 1d;
+        graph2LastZValue += 1d;
+        series.appendData(new DataPoint(graph2LastYValue, y), true, 20);
+
+        seriesX.appendData(new DataPoint(graph2LastXValue, x), true, 20);
+        seriesZ.appendData(new DataPoint(graph2LastZValue, z), true, 20);
+        graph.addSeries(series);
+        graph.addSeries(seriesX);
+        graph.addSeries(seriesZ);
+
+
+
+
+        /*LineGraphSeries<DataPoint> series = new LineGraphSeries<DataPoint>(new DataPoint[] {
+                new DataPoint(x, y),
+        });
+        graph.addSeries(series);*/
+
+        /*float accelationSquareRoot = (x * x + y * y + z * z)
+                / (SensorManager.GRAVITY_EARTH * SensorManager.GRAVITY_EARTH);
+        double acceleration = Math.sqrt(accelationSquareRoot);
+        long actualTime = System.currentTimeMillis();
+        graph2LastXValue += 1d;
+        series.appendData(new GraphView(accelationSquareRoot,));
+        addDataPoint(acceleration);
+*/
+    }
+    private void addDataPoint(double acceleration) {
+        dataPoints[499] = acceleration;
+        //To change body of created methods use File | Settings | File Templates.
+    }
+
+    private void feedMultiple() {
+
+        if (thread != null){
+            thread.interrupt();
+        }
+
+        thread = new Thread(new Runnable() {
+
+            @Override
+            public void run() {
+                while (true){
+                    plotData = true;
+                    try {
+                        Thread.sleep(10);
+                    } catch (InterruptedException e) {
+                        // TODO Auto-generated catch block
+                        e.printStackTrace();
+                    }
+                }
+            }
+        });
+
+        thread.start();
+    }
+    @Override
+    protected void onPause() {
+        super.onPause();
+
+        if (thread != null) {
+            thread.interrupt();
+        }
+        mSensorManager.unregisterListener(this);
+
+    }
+
 
     @Override
     public void onSensorChanged(SensorEvent event) {
+        if(plotData){
+            addEntry(event);
 
+            plotData = false;
+        }
     }
 
     @Override
     public void onAccuracyChanged(Sensor sensor, int accuracy) {
 
+    }
+    @Override
+    protected void onResume() {
+        super.onResume();
+        mSensorManager.registerListener(this, sensor, SensorManager.SENSOR_DELAY_GAME);
+    }
+
+    @Override
+    protected void onDestroy() {
+        mSensorManager.unregisterListener(GrafActivity.this);
+        thread.interrupt();
+        super.onDestroy();
     }
 }
