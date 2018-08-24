@@ -12,6 +12,7 @@ import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.View;
+import android.widget.Button;
 
 import com.jjoe64.graphview.GraphView;
 import com.jjoe64.graphview.series.DataPoint;
@@ -30,6 +31,12 @@ public class GrafActivity extends AppCompatActivity implements SensorEventListen
     LineGraphSeries<DataPoint> seriesZ;
     private Thread thread;
     private boolean plotData = true;
+    FloatingActionButton floatingActionButton;
+    private boolean graficflag=true;
+
+
+    private float On_1 = 1;
+    private float altha = 0.05f;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -37,6 +44,17 @@ public class GrafActivity extends AppCompatActivity implements SensorEventListen
         setContentView(R.layout.activity_graf);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+        floatingActionButton=(FloatingActionButton)findViewById(R.id.fab);
+        floatingActionButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                buttonClick();
+            }
+//                if(graficflag==true){
+//                graficflag=false;
+//            }
+//            else {graficflag=false;}}
+        });
 
         Bundle extras=getIntent().getExtras();
         if(extras!=null)
@@ -62,15 +80,15 @@ public class GrafActivity extends AppCompatActivity implements SensorEventListen
                 new DataPoint(0,0),
         });
         seriesZ.setColor(Color.RED);
-
-        graph.addSeries(seriesX);
-        graph.addSeries(series);
-        graph.addSeries(seriesZ);
-
-        graph.getViewport().setXAxisBoundsManual(true);
-        graph.getViewport().setMinX(0);
-        graph.getViewport().setMaxX(20);
-        feedMultiple();
+        if(graficflag) {
+            graph.addSeries(seriesX);
+            graph.addSeries(series);
+            graph.addSeries(seriesZ);
+        }
+            graph.getViewport().setXAxisBoundsManual(true);
+            graph.getViewport().setMinX(0);
+            graph.getViewport().setMaxX(20);
+            feedMultiple();
 
     }
     public void addEntry(SensorEvent event) {
@@ -92,17 +110,24 @@ public class GrafActivity extends AppCompatActivity implements SensorEventListen
 
         seriesX.appendData(new DataPoint(graph2LastXValue, x), true, 20);
         seriesZ.appendData(new DataPoint(graph2LastZValue, z), true, 20);
-        graph.addSeries(series);
-        graph.addSeries(seriesX);
-        graph.addSeries(seriesZ);
+        if (graficflag) {
+            graph.addSeries(series);
+            graph.addSeries(seriesX);
+            graph.addSeries(seriesZ);
+        }
 
 
-
-
-        /*LineGraphSeries<DataPoint> series = new LineGraphSeries<DataPoint>(new DataPoint[] {
+//        /*добавление фильтра
+        LineGraphSeries<DataPoint> series = new LineGraphSeries<DataPoint>(new DataPoint[]{
                 new DataPoint(x, y),
         });
-        graph.addSeries(series);*/
+        graph.addSeries(series);
+    }
+
+
+
+
+
 
         /*float accelationSquareRoot = (x * x + y * y + z * z)
                 / (SensorManager.GRAVITY_EARTH * SensorManager.GRAVITY_EARTH);
@@ -112,6 +137,36 @@ public class GrafActivity extends AppCompatActivity implements SensorEventListen
         series.appendData(new GraphView(accelationSquareRoot,));
         addDataPoint(acceleration);
 */
+//    }
+
+    public void addEntry1(SensorEvent event) {
+        /*     LineGraphSeries<DataPoint> series = new LineGraphSeries<>();*/
+        float[] values = event.values;
+        // Movement
+        float x = values[0];
+        System.out.println(x);
+        float y = values[1];
+        System.out.println(y);
+        float z = values[2];
+        System.out.println(z);
+//        float filtrx=(float)(On_1+ altha*(x-On_1));
+        float filtrx=(float)(x*3);
+        float filtry=(float)(On_1+ altha*(y-On_1));
+        float filtrz=(float)(On_1+ altha*(z-On_1));
+
+
+        graph2LastXValue += 1d;
+        graph2LastYValue += 1d;
+        graph2LastZValue += 1d;
+        series.appendData(new DataPoint(graph2LastYValue, y), true, 20);
+
+        seriesX.appendData(new DataPoint(graph2LastXValue, x), true, 20);
+        seriesZ.appendData(new DataPoint(graph2LastZValue, z), true, 20);
+
+            graph.addSeries(series);
+            graph.addSeries(seriesX);
+            graph.addSeries(seriesZ);
+
     }
     private void addDataPoint(double acceleration) {
         dataPoints[499] = acceleration;
@@ -158,6 +213,8 @@ public class GrafActivity extends AppCompatActivity implements SensorEventListen
     public void onSensorChanged(SensorEvent event) {
         if(plotData){
             addEntry(event);
+            addEntry1(event);
+
 
             plotData = false;
         }
@@ -178,5 +235,18 @@ public class GrafActivity extends AppCompatActivity implements SensorEventListen
         mSensorManager.unregisterListener(GrafActivity.this);
         thread.interrupt();
         super.onDestroy();
+    }
+
+    private void  buttonClick(){
+//        mSensorManager.unregisterListener(GrafActivity.this);
+//        thread.interrupt();
+       if (graficflag){
+//            plotData = true;
+            mSensorManager.unregisterListener(GrafActivity.this);
+           graficflag=false;
+        }
+        else {
+           mSensorManager.registerListener(this, sensor, SensorManager.SENSOR_DELAY_GAME);
+       }
     }
 }
