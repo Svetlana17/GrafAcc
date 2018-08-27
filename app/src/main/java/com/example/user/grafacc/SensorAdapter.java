@@ -3,6 +3,8 @@ package com.example.user.grafacc;
 import android.content.Context;
 import android.content.Intent;
 import android.hardware.Sensor;
+import android.hardware.SensorEvent;
+import android.hardware.SensorEventListener;
 import android.os.Build;
 import android.os.Parcelable;
 import android.support.annotation.NonNull;
@@ -17,13 +19,15 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class SensorAdapter extends RecyclerView.Adapter<SensorAdapter.ViewHolder> {
-    private List<Sensor> sensors;
+    private List<Sensor> sensors=new ArrayList<>();
     private LayoutInflater mIflater;
     private Context mContext;
     public SensorAdapter(Context context, List<Sensor> sensorList) {
     this.mContext=context;
     this.sensors=sensorList;
     this.mIflater=LayoutInflater.from(mContext);
+
+
     }
 
     @NonNull
@@ -38,18 +42,21 @@ public class SensorAdapter extends RecyclerView.Adapter<SensorAdapter.ViewHolder
     @Override
     public void onBindViewHolder(@NonNull ViewHolder viewHolder, int i) {
     final Sensor sensor=sensors.get(i);
-    viewHolder.name.setText(sensor.getName());
-//        viewHolder.type.setText(sensor.getType());
-//        viewHolder.vendor.setText(sensor.getVendor());
-//        viewHolder.version.setText(sensor.getVersion());
-//        viewHolder.max.setText((int) sensor.getMaximumRange());
+    viewHolder.name.setText("Name " +sensor.getName());
+        viewHolder.type.setText("Type " + String.valueOf(sensor.getType()));
+        viewHolder.vendor.setText("Vendor " + String.valueOf(sensor.getVendor()));
+        viewHolder.version.setText("Version" + String.valueOf(sensor.getVersion()));
+        viewHolder.max.setText("Maximum" + String.valueOf( sensor.getMaximumRange()));
+
         viewHolder.name.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent=new Intent(mContext, GrafActivity.class);
-              Integer i=sensor.getType();
-//              String s=sensor.getStringType();
+                 Intent intent=new Intent(mContext, GrafActivity.class);
+                 Integer i=sensor.getType();
+//              String s= String.valueOf(sensor.getType());
                     intent.putExtra("sensortype",sensor.getType());
+
+                StringBuilder sb = new StringBuilder();
 
                 mContext.startActivity(intent);
             }
@@ -64,13 +71,15 @@ public class SensorAdapter extends RecyclerView.Adapter<SensorAdapter.ViewHolder
     }
 
 
-    public class ViewHolder extends RecyclerView.ViewHolder{
+    public class ViewHolder extends RecyclerView.ViewHolder implements SensorEventListener{
         TextView name;
         TextView type;
         TextView vendor;
         TextView version;
         TextView max;
         TextView resolution;
+        TextView textViewX;
+
 
 
         public ViewHolder(@NonNull View itemView) {
@@ -81,6 +90,25 @@ public class SensorAdapter extends RecyclerView.Adapter<SensorAdapter.ViewHolder
             version=(TextView) itemView.findViewById(R.id.version);
             max=(TextView) itemView.findViewById(R.id.max);
             resolution=(TextView) itemView.findViewById(R.id.resolution);
+            textViewX=(TextView) itemView.findViewById(R.id.textX);
+        }
+
+        @Override
+        public void onSensorChanged(SensorEvent event) {
+            float[] values = event.values;
+            switch (event.sensor.getType()) {
+                case Sensor.TYPE_ACCELEROMETER: {
+                    //собственно выводим все полученые параметры в текствьюшки наши
+                    textViewX.setText("ttt");
+//                mYValueText.setText(String.format("%1.3f", event.values[SensorManager.DATA_Y]));
+//                mZValueText.setText(String.format("%1.3f", event.values[SensorManager.DATA_Z]));
+                }
+                break;
+            }
+        }
+
+        @Override
+        public void onAccuracyChanged(Sensor sensor, int accuracy) {
 
         }
     }

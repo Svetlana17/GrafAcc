@@ -1,16 +1,20 @@
 package com.example.user.grafacc;
 
 import android.hardware.Sensor;
+import android.hardware.SensorEvent;
+import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.view.View;
+import android.widget.TextView;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity  {
 
     SensorManager sensorManager;
     List<Sensor> sensorList=new ArrayList<>();
@@ -22,6 +26,8 @@ public class MainActivity extends AppCompatActivity {
     Sensor sensorGiroscope;
     Sensor sensorMagnitometr;
     RecyclerView recyclerView;
+
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -40,6 +46,14 @@ public class MainActivity extends AppCompatActivity {
         sensorAdapter=new SensorAdapter(this,sensorList);
         recyclerView.setAdapter(sensorAdapter);
         sensorAdapter.notifyDataSetChanged();
+
+
+
+
     }
+
+
+
+
 
 }
