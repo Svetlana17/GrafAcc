@@ -1,22 +1,35 @@
 package com.example.user.grafacc;
 
+import android.Manifest;
 import android.content.Context;
+import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.os.Bundle;
+import android.os.Environment;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.View;
 import android.widget.Button;
+import android.widget.EditText;
+import android.widget.Toast;
 
 import com.jjoe64.graphview.GraphView;
 import com.jjoe64.graphview.series.DataPoint;
 import com.jjoe64.graphview.series.LineGraphSeries;
+
+import org.w3c.dom.Text;
+
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
 
 public class GrafActivity extends AppCompatActivity implements SensorEventListener {
 //    private SensorManager mSensorManager;
@@ -491,7 +504,7 @@ public class GrafActivity extends AppCompatActivity implements SensorEventListen
         private boolean plotData = true;
         FloatingActionButton floatingActionButton;
         private boolean graficflag = false;
-
+        private boolean saveText=false;
         float xx;
         float yy;
         float zz;
@@ -499,12 +512,25 @@ public class GrafActivity extends AppCompatActivity implements SensorEventListen
         private float On_1 = 1;
         private float altha = 0.05f;
 
+    private final static String FILE_NAME = "grafic.txt";
+    private static final int REQUEST_PERMISSION_WRITE = 1001;
+    private boolean permissionGranted;
+    Button buttonsave;
+
         @Override
         protected void onCreate(Bundle savedInstanceState) {
             super.onCreate(savedInstanceState);
             setContentView(R.layout.activity_graf);
             Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+
             setSupportActionBar(toolbar);
+            buttonsave=(Button)findViewById(R.id.buttonsave);
+            buttonsave.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    saveText=!saveText;
+                }
+            });
             floatingActionButton = (FloatingActionButton) findViewById(R.id.fab);
             floatingActionButton.setOnClickListener(new View.OnClickListener() {
                 @Override
@@ -583,6 +609,95 @@ public class GrafActivity extends AppCompatActivity implements SensorEventListen
 
         }
 
+    private File getExternalPath() {
+        return(new File(Environment.getExternalStorageDirectory(), FILE_NAME));
+    }
+    public void saveExternalText(Float x, Float y, Float z){
+
+        if(!permissionGranted){
+            checkPermissions();
+            return;
+        }
+        FileOutputStream fos = null;
+        try {
+
+
+            String text = x+" " + y + " " + z+" ";
+            System.out.println(text);
+            System.out.println(this.getExternalFilesDir(FILE_NAME));
+            fos = new FileOutputStream(getExternalPath());//сохранение
+            fos.write(text.getBytes());
+            Toast.makeText(this, "Файл сохранен", Toast.LENGTH_SHORT).show();
+        }
+        catch(IOException ex) {
+
+            Toast.makeText(this, ex.getMessage(), Toast.LENGTH_SHORT).show();
+        }
+        finally{
+            try{
+                if(fos!=null)
+                    fos.close();
+            }
+            catch(IOException ex){
+
+                Toast.makeText(this, ex.getMessage(), Toast.LENGTH_SHORT).show();
+            }
+        }
+    }
+    public boolean isExternalStorageWriteable(){
+        String state = Environment.getExternalStorageState();
+        return Environment.MEDIA_MOUNTED.equals(state);
+    }
+    // проверяем, доступно ли внешнее хранилище хотя бы только для чтения
+    public boolean isExternalStorageReadable(){
+        String state = Environment.getExternalStorageState();
+        return (Environment.MEDIA_MOUNTED.equals(state) ||
+                Environment.MEDIA_MOUNTED_READ_ONLY.equals(state));
+    }
+    private boolean checkPermissions(){
+
+        if(!isExternalStorageReadable() || !isExternalStorageWriteable()){
+            Toast.makeText(this, "Внешнее хранилище не доступно", Toast.LENGTH_LONG).show();
+            return false;
+        }
+        int permissionCheck = ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE);
+        if(permissionCheck!= PackageManager.PERMISSION_GRANTED){
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, REQUEST_PERMISSION_WRITE);
+            return false;
+        }
+        return true;
+    }
+
+    public void saveTextInternal(float x, float y, float z){
+
+        FileOutputStream fos = null;
+        try {
+
+            String text = x +" "+ y +" " +z;
+            System.out.println("!!!!!!!!!!!");
+            System.out.println(text);
+
+
+            fos = openFileOutput(FILE_NAME, MODE_APPEND);
+            System.out.println(this.getDir(FILE_NAME,MODE_APPEND));
+            fos.write(text.getBytes());
+            Toast.makeText(this, "Файл сохранен", Toast.LENGTH_SHORT).show();
+        }
+        catch(IOException ex) {
+
+            Toast.makeText(this, ex.getMessage(), Toast.LENGTH_SHORT).show();
+        }
+        finally{
+            try{
+                if(fos!=null)
+                    fos.close();
+            }
+            catch(IOException ex){
+
+                Toast.makeText(this, ex.getMessage(), Toast.LENGTH_SHORT).show();
+            }
+        }
+    }
         public void addEntry(SensorEvent event) {
             /* LineGraphSeries<DataPoint> series = new LineGraphSeries<>();*/
             float[] values = event.values;
@@ -592,7 +707,15 @@ public class GrafActivity extends AppCompatActivity implements SensorEventListen
             float y = values[1];
             System.out.println(y);
             float z = values[2];
+
             System.out.println(z);
+            if(saveText){
+                System.out.println("!!!!!!!!!!!!!!!!!!!");
+                saveExternalText(x, y, z);
+
+                saveTextInternal(x,y,z);
+                System.out.println(this.getDir(FILE_NAME,MODE_APPEND));
+            }
 
             float xx=0;
             float yy=0;

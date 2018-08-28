@@ -42,11 +42,11 @@ public class SensorAdapter extends RecyclerView.Adapter<SensorAdapter.ViewHolder
     @Override
     public void onBindViewHolder(@NonNull ViewHolder viewHolder, int i) {
     final Sensor sensor=sensors.get(i);
-    viewHolder.name.setText("Name " +sensor.getName());
-        viewHolder.type.setText("Type " + String.valueOf(sensor.getType()));
-        viewHolder.vendor.setText("Vendor " + String.valueOf(sensor.getVendor()));
-        viewHolder.version.setText("Version" + String.valueOf(sensor.getVersion()));
-        viewHolder.max.setText("Maximum" + String.valueOf( sensor.getMaximumRange()));
+    viewHolder.name.setText("Name: " +sensor.getName());
+        viewHolder.type.setText("Type: " + String.valueOf(sensor.getType()));
+        viewHolder.vendor.setText("Vendor: " + String.valueOf(sensor.getVendor()));
+        viewHolder.version.setText("Version: " + String.valueOf(sensor.getVersion()));
+        viewHolder.max.setText("Maximum: " + String.valueOf( sensor.getMaximumRange()));
 
         viewHolder.name.setOnClickListener(new View.OnClickListener() {
             @Override
